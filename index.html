@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+    <title>OpenCV JS</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/album/">
+    <!-- Bootstrap core CSS -->
+<link href="assets/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none; 
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    
+<header>
+  <div class="collapse bg-dark" id="navbarHeader">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-8 col-md-7 py-4">
+          <h4 class="text-white">About</h4>
+          <p class="text-muted">using opencv javascript</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="navbar navbar-dark bg-dark shadow-sm">
+    <div class="container">
+      <a href="#" class="navbar-brand d-flex align-items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true" class="me-2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <strong>OpenCV tester</strong>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarHeader" aria-controls="navbarHeader" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="py-5 text-center container">
+    <div class="row py-lg-5">
+      <div class="col-lg-6 col-md-8 mx-auto">
+        <h1 class="fw-light">Open CV</h1>
+        <p class="lead text-muted" id="status">OpenCV.js is loading...</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="album py-5 bg-light">
+    <div class="container">
+      <div class="row row-cols-1 row-cols-sm-3 g-3 text-center">
+        <!-- left image and button -->
+        <div class="col">
+          <div class="card shadow-sm">
+              <img id="imageSrc1" src="" />
+            <div class="card-body">
+              <p class="card-text">Starting image</p>
+              <input type="file" class="btn btn-sm btn-outline-secondary" id="fileInput1" name="file" />
+            </div>
+          </div>
+        </div>
+        <!-- center image and button -->
+        <div class="col">
+          <div class="card shadow-sm">
+            <img id="imageSrc2" src="" />
+            <div class="card-body">
+              <p class="card-text">Second image</p>
+              <input type="file" class="btn btn-sm btn-outline-secondary" id="fileInput2" name="file" />
+            </div>
+          </div>
+        </div>
+        <!-- Output image -->
+        <div class="col">
+          <div class="card shadow-sm">
+            <canvas id="canvasOutput" ></canvas>
+            <div class="card-body">
+              <p class="card-text">Result</p>
+              <a id="link"><button type="button" class="btn btn-sm btn-outline-secondary" onClick="saveImage()">Download</button></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="text-muted py-5">
+  <div class="container">
+    <p class="float-end mb-1">
+      <a href="#">Back to top</a>
+    </p>
+  </div>
+</footer>
+
+    <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript">
+    //Initiall hide the download button
+      document.getElementById("link").style.visibility = "hidden";
+
+      //download modified image
+      function saveImage(){
+        var canvas = document.getElementById("canvasOutput");
+        var link = document.getElementById("link");
+        link.setAttribute('download', 'resultImage.png');
+        link.setAttribute('href', canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"));
+      }
+
+      //first image
+      let imgElement1 = document.getElementById('imageSrc1');
+      let inputElement1 = document.getElementById('fileInput1');
+      inputElement1.addEventListener('change', (e) => {
+        imgElement1.src = URL.createObjectURL(e.target.files[0]);
+      }, false);
+
+      //second image
+      let imgElement2 = document.getElementById('imageSrc2');
+      let inputElement2 = document.getElementById('fileInput2');
+      inputElement2.addEventListener('change', (e) => {
+        imgElement2.src = URL.createObjectURL(e.target.files[0]);
+      }, false);
+
+      
+      imgElement2.onload = function() {
+        let src = cv.imread(imgElement1);
+        let logo = cv.imread(imgElement2);
+ 
+        let dst = new cv.Mat();
+        let mask = new cv.Mat();
+        let mask2 = new cv.Mat();
+        let final2 = new cv.Mat();
+        let final = new cv.Mat();
+        let maskInv = new cv.Mat();
+        let imgBg = new cv.Mat();
+        let imgFg = new cv.Mat();
+        let sum = new cv.Mat();
+
+        // Create a mask of logo and create its inverse mask also
+        cv.cvtColor(logo, mask, cv.COLOR_RGBA2GRAY, 0);
+        cv.threshold(mask, mask, 100, 255, cv.THRESH_BINARY);
+
+        // Black-out the area of logo in ROI
+        cv.bitwise_and(logo, logo, imgBg, maskInv);
+
+        // Take only region of logo from logo image
+        cv.bitwise_and(logo, logo, imgFg, mask);
+
+        dst = src.clone();
+
+        cv.bitwise_not(logo, dst, mask2);
+        cv.bitwise_not(imgFg, final, mask2);
+        cv.bitwise_and(src, logo, dst, mask);
+        cv.bitwise_or(dst, final, final2, mask);
+        cv.imshow('canvasOutput', final2);
+        src.delete(); dst.delete(); logo.delete(); mask.delete(); mask2.delete(); final.delete();final2.delete();
+        maskInv.delete(); imgBg.delete(); imgFg.delete(); sum.delete();
+
+        
+        //make the download button visible
+        document.getElementById("link").style.visibility = "visible";
+      };
+
+      //loading opencv
+      function onOpenCvReady() {
+        cv['onRuntimeInitialized'] = () => {
+        document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+        document.getElementById("imageSrc1").src = "octo.png";
+        document.getElementById("imageSrc2").src = "octo.png";
+        }
+      }
+
+      </script>
+      <script async src="opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+      
+  </body>
+</html>
